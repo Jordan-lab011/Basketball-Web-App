@@ -7,6 +7,7 @@ const port = 3000;
 const API_URL = "https://secrets-api.appbrewery.com/random";
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"))
 
 app.get("/", async (req, res) => { // : Route path (e.g., 'users')
   try {
