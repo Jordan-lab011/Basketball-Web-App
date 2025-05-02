@@ -4,9 +4,28 @@ import bodyParser from "body-parser";
 
 const app = express();
 const port = 3000;
-const API_URL = "https://secrets-api.appbrewery.com";
+const API_URL = "https://secrets-api.appbrewery.com/random";
 
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.get("/", async (req, res) => { // : Route path (e.g., 'users')
+  try {
+    const response = await axios.get(API_URL); // http://example.com/api: API endpoint URL
+    const data = (response.data); // variable name (data) can be changed
+    console.log(data);
+
+    // Render the page and pass in the data
+    res.render("index.ejs", {
+        user: data.username,
+        secret: data.secret
+    }); // page: Template name (without extension)
+  } catch (error) {
+    console.error("Request failed:", error.message);
+    res.render("index.ejs", {
+      error: error.message,
+    });
+  }
+});
 
 // HINTS:
 // 1. Import express and axios
