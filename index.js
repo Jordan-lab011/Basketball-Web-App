@@ -6,7 +6,7 @@ const app = express();
 const port = 3000;
 const API_URL = "https://secrets-api.appbrewery.com";
 
-
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // HINTS:
 // 1. Import express and axios
@@ -21,3 +21,8 @@ const API_URL = "https://secrets-api.appbrewery.com";
 // secret and the username of the secret.
 
 // 6. Listen on your predefined port and start the server.
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+  
