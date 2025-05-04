@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"))
 
 app.get("/", (req, res) => { // : Route path (e.g., 'users')
-  res.send("Hello world!")
+  res.render("index.ejs")
 });
 
 app.listen(port, () => {
