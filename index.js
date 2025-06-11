@@ -18,15 +18,14 @@ app.use(express.static("public"))
 app.get("/", async(req, res) => { 
       const response = await axios.get(`${NBA_API_URL}/player-of-the-day`); 
       const data = (response.data); 
+      const player = data.player_of_the_day.Player;
       console.log(data);
-      const player = data.player_of_the_day;
-      console.log(player);
 
       // Fetching player image using Google Custom Search API
-      const searchResponse = await axios.get(`https://www.googleapis.com/customsearch/v1?key=AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw&cx=97288c4fc65664c6f&q=Kyrie%20Irving&num=1&dateRestrict=d[1]&imgSize=xlarge`);
-      const rawSearchData = searchResponse.data;
-      const searchData = JSON.parse(rawSearchData);
-      const playerImage = searchData.items[0].metatags[0].og_image;
+      const searchResponse = await axios.get(`https://www.googleapis.com/customsearch/v1?key=AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw&cx=97288c4fc65664c6f&q=${player}&num=1&dateRestrict=d[1]&imgSize=xlarge&searchType=image`);
+      const searchData = searchResponse.data;
+      const playerImage = searchData.items[0].link;
+      console.log(playerImage);
       res.render("index.ejs", {
         date: data.date,
         playerOfTheDay: data.player_of_the_day,
