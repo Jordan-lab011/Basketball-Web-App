@@ -48,7 +48,7 @@ const toggleMenu = (button) => {
   }
 
   button.classList.add("toggled");
-  button.style.backgroundColor = "#8ed7c6";
+  button.style.backgroundColor = "#C9082A";
 
   if (button !== menu) {
     previousToggled = button;
@@ -79,42 +79,42 @@ const openMenu = () => {
 
   let p_playerOfTheDay = document.createElement("p");
   p_playerOfTheDay.id = "p-playerOfTheDay";
-  p_playerOfTheDay.innerHTML = "playerOfTheDay";
+  p_playerOfTheDay.innerHTML = "Player Of The Day";
   playerOfTheDay.style.width = "220px";
   playerOfTheDay.style.justifyContent = "left";
   playerOfTheDay.appendChild(p_playerOfTheDay);
 
   let p_dash = document.createElement("p");
   p_dash.id = "p-matches";
-  p_dash.innerHTML = "matches";
+  p_dash.innerHTML = "Matches Today";
   matches.style.width = "220px";
   matches.style.justifyContent = "left";
   matches.appendChild(p_dash);
 
   let p_playerStats = document.createElement("p");
   p_playerStats.id = "p-playerStats";
-  p_playerStats.innerHTML = "playerStats";
+  p_playerStats.innerHTML = "Player Stats";
   playerStats.style.width = "220px";
   playerStats.style.justifyContent = "left";
   playerStats.appendChild(p_playerStats);
 
   let p_playerComparison = document.createElement("p");
   p_playerComparison.id = "p-playerComparison";
-  p_playerComparison.innerHTML = "playerComparison";
+  p_playerComparison.innerHTML = "Player Comparison";
   playerComparison.style.width = "220px";
   playerComparison.style.justifyContent = "left";
   playerComparison.appendChild(p_playerComparison);
 
   let p_leagueLeaders = document.createElement("p");
   p_leagueLeaders.id = "p-leagueLeaders";
-  p_leagueLeaders.innerHTML = "leagueLeaders";
+  p_leagueLeaders.innerHTML = "League Leaders";
   leagueLeaders.style.width = "220px";
   leagueLeaders.style.justifyContent = "left";
   leagueLeaders.appendChild(p_leagueLeaders);
 
   let p_safe2hoop = document.createElement("p");
   p_safe2hoop.id = "p-safe2hoop";
-  p_safe2hoop.innerHTML = "safe2hoop";
+  p_safe2hoop.innerHTML = "Safe to hoop?";
   safe2hoop.style.width = "220px";
   safe2hoop.style.justifyContent = "left";
   safe2hoop.appendChild(p_safe2hoop);

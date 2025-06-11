@@ -1,7 +1,7 @@
 :root {
     --body-bg-color: #dce4e3;
-    --green: #18c29c;
-    --light-green: #8ed7c6;
+    --green:#C9082A ;
+    --light-green: #ffffff8e;
     --light-grey: #dce4e3;
     --text-color: #084236;
   }
@@ -49,8 +49,8 @@
   }
   
   .icon {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     background-color: var(--green);
     border-radius: 12px;
     display: flex;
