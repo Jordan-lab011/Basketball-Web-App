@@ -8,38 +8,38 @@ const logout_container = document.querySelector(".logout-container");
 
 const icon_logout = document.querySelector(".icon-logout");
 
-const search = document.querySelector("#search");
-const dashboard = document.querySelector("#dashboard");
-const pets = document.querySelector("#pets");
-const clients = document.querySelector("#clients");
-const vets = document.querySelector("#vets");
-const settings = document.querySelector("#settings");
+const playerOfTheDay = document.querySelector("#playerOfTheDay");
+const matches = document.querySelector("#matches");
+const playerStats = document.querySelector("#playerStats");
+const playerComparison = document.querySelector("#playerComparison");
+const leagueLeaders = document.querySelector("#leagueLeaders");
+const safe2hoop = document.querySelector("#safe2hoop");
 
 let previousToggled = null;
 let currentToggled = null;
 
-search.addEventListener("click", (e) => {
-  toggleMenu(search);
+playerOfTheDay.addEventListener("click", (e) => {
+  toggleMenu(playerOfTheDay);
 });
 
-dashboard.addEventListener("click", (e) => {
-  toggleMenu(dashboard);
+matches.addEventListener("click", (e) => {
+  toggleMenu(matches);
 });
 
-pets.addEventListener("click", (e) => {
-  toggleMenu(pets);
+playerStats.addEventListener("click", (e) => {
+  toggleMenu(playerStats);
 });
 
-clients.addEventListener("click", (e) => {
-  toggleMenu(clients);
+playerComparison.addEventListener("click", (e) => {
+  toggleMenu(playerComparison);
 });
 
-vets.addEventListener("click", (e) => {
-  toggleMenu(vets);
+leagueLeaders.addEventListener("click", (e) => {
+  toggleMenu(leagueLeaders);
 });
 
-settings.addEventListener("click", (e) => {
-  toggleMenu(settings);
+safe2hoop.addEventListener("click", (e) => {
+  toggleMenu(safe2hoop);
 });
 
 const toggleMenu = (button) => {
@@ -77,47 +77,47 @@ const openMenu = () => {
   menu_container.style.paddingLeft = "15px";
   menu_container.insertBefore(menu_logo, menu_container.childNodes[0]);
 
-  let p_search = document.createElement("p");
-  p_search.id = "p-search";
-  p_search.innerHTML = "Search";
-  search.style.width = "220px";
-  search.style.justifyContent = "left";
-  search.appendChild(p_search);
+  let p_playerOfTheDay = document.createElement("p");
+  p_playerOfTheDay.id = "p-playerOfTheDay";
+  p_playerOfTheDay.innerHTML = "playerOfTheDay";
+  playerOfTheDay.style.width = "220px";
+  playerOfTheDay.style.justifyContent = "left";
+  playerOfTheDay.appendChild(p_playerOfTheDay);
 
   let p_dash = document.createElement("p");
-  p_dash.id = "p-dashboard";
-  p_dash.innerHTML = "Dashboard";
-  dashboard.style.width = "220px";
-  dashboard.style.justifyContent = "left";
-  dashboard.appendChild(p_dash);
+  p_dash.id = "p-matches";
+  p_dash.innerHTML = "matches";
+  matches.style.width = "220px";
+  matches.style.justifyContent = "left";
+  matches.appendChild(p_dash);
 
-  let p_pets = document.createElement("p");
-  p_pets.id = "p-pets";
-  p_pets.innerHTML = "Pets";
-  pets.style.width = "220px";
-  pets.style.justifyContent = "left";
-  pets.appendChild(p_pets);
+  let p_playerStats = document.createElement("p");
+  p_playerStats.id = "p-playerStats";
+  p_playerStats.innerHTML = "playerStats";
+  playerStats.style.width = "220px";
+  playerStats.style.justifyContent = "left";
+  playerStats.appendChild(p_playerStats);
 
-  let p_clients = document.createElement("p");
-  p_clients.id = "p-clients";
-  p_clients.innerHTML = "Clients";
-  clients.style.width = "220px";
-  clients.style.justifyContent = "left";
-  clients.appendChild(p_clients);
+  let p_playerComparison = document.createElement("p");
+  p_playerComparison.id = "p-playerComparison";
+  p_playerComparison.innerHTML = "playerComparison";
+  playerComparison.style.width = "220px";
+  playerComparison.style.justifyContent = "left";
+  playerComparison.appendChild(p_playerComparison);
 
-  let p_vets = document.createElement("p");
-  p_vets.id = "p-vets";
-  p_vets.innerHTML = "Vets";
-  vets.style.width = "220px";
-  vets.style.justifyContent = "left";
-  vets.appendChild(p_vets);
+  let p_leagueLeaders = document.createElement("p");
+  p_leagueLeaders.id = "p-leagueLeaders";
+  p_leagueLeaders.innerHTML = "leagueLeaders";
+  leagueLeaders.style.width = "220px";
+  leagueLeaders.style.justifyContent = "left";
+  leagueLeaders.appendChild(p_leagueLeaders);
 
-  let p_settings = document.createElement("p");
-  p_settings.id = "p-settings";
-  p_settings.innerHTML = "Settings";
-  settings.style.width = "220px";
-  settings.style.justifyContent = "left";
-  settings.appendChild(p_settings);
+  let p_safe2hoop = document.createElement("p");
+  p_safe2hoop.id = "p-safe2hoop";
+  p_safe2hoop.innerHTML = "safe2hoop";
+  safe2hoop.style.width = "220px";
+  safe2hoop.style.justifyContent = "left";
+  safe2hoop.appendChild(p_safe2hoop);
 
   icon_logout.style.width = "25%";
 
@@ -152,29 +152,29 @@ const closeMenu = () => {
 
   untoggleMenu(menu);
 
-  search.removeChild(document.getElementById("p-search"));
-  search.style.width = "50px";
-  search.style.justifyContent = "center";
+  playerOfTheDay.removeChild(document.getElementById("p-playerOfTheDay"));
+  playerOfTheDay.style.width = "50px";
+  playerOfTheDay.style.justifyContent = "center";
 
-  dashboard.removeChild(document.getElementById("p-dashboard"));
-  dashboard.style.width = "50px";
-  dashboard.style.justifyContent = "center";
+  matches.removeChild(document.getElementById("p-matches"));
+  matches.style.width = "50px";
+  matches.style.justifyContent = "center";
 
-  pets.removeChild(document.getElementById("p-pets"));
-  pets.style.width = "50px";
-  pets.style.justifyContent = "center";
+  playerStats.removeChild(document.getElementById("p-playerStats"));
+  playerStats.style.width = "50px";
+  playerStats.style.justifyContent = "center";
 
-  clients.removeChild(document.getElementById("p-clients"));
-  clients.style.width = "50px";
-  clients.style.justifyContent = "center";
+  playerComparison.removeChild(document.getElementById("p-playerComparison"));
+  playerComparison.style.width = "50px";
+  playerComparison.style.justifyContent = "center";
 
-  vets.removeChild(document.getElementById("p-vets"));
-  vets.style.width = "50px";
-  vets.style.justifyContent = "center";
+  leagueLeaders.removeChild(document.getElementById("p-leagueLeaders"));
+  leagueLeaders.style.width = "50px";
+  leagueLeaders.style.justifyContent = "center";
 
-  settings.removeChild(document.getElementById("p-settings"));
-  settings.style.width = "50px";
-  settings.style.justifyContent = "center";
+  safe2hoop.removeChild(document.getElementById("p-safe2hoop"));
+  safe2hoop.style.width = "50px";
+  safe2hoop.style.justifyContent = "center";
 
   logout_container.removeChild(document.getElementById("logout-photo"));
   logout_container.removeChild(document.getElementById("user-container"));

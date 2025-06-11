@@ -1,19 +1,36 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,)
 from nba_api.stats.static import teams as nba_teams
 from nba_api.stats.endpoints import scoreboardv2, boxscoretraditionalv2, leaguegamelog, playercareerstats
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import time
+from nba_api.stats.static import players as nba_players_static
+from nba_api.stats.endpoints import (
+    commonplayerinfo,
+    playercareerstats,
+    leagueleaders,
+)
 
 app = FastAPI()
 
 # Build a mapping from team_id → team_abbreviation
 _TEAM_MAP = {team["id"]: team["abbreviation"] for team in nba_teams.get_teams()}
 
+def get_current_season():
+    today = datetime.now()
+    if today.month >= 10:  # NBA season starts in October
+        start_year = today.year
+    else:
+        start_year = today.year - 1
+    return f"{start_year}-{str(start_year + 1)[-2:]}"
+
 
 @app.get("/player-of-the-day")
-def player_of_the_day(days_ago: int = 1):
+def player_of_the_day(days_ago: int = 3):
     """
     Returns the “best” player of a given day (default = yesterday),
     across Regular Season, Playoffs, and In-Season Tournament games.
@@ -191,7 +208,7 @@ def player_stats(player_id: int):
         df = career.get_data_frames()[0]  # DataFrame per season
 
         # Filter for 2024-25 season
-        current_season = "2024-25"
+        current_season = get_current_season()
         row = df[df["SEASON_ID"] == current_season]
 
         if row.empty:
@@ -202,6 +219,91 @@ def player_stats(player_id: int):
         stats = {k: (None if (isinstance(v, float) and np.isnan(v)) else v) for k, v in stats.items()}
 
         return {"player_id": player_id, "season": current_season, "stats": stats}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"NBA API error: {str(exc)}")
+
+
+@app.get("/compare-players")
+def compare_players(
+    player1: int = Query(..., description="First player’s NBA ID"),
+    player2: int = Query(..., description="Second player’s NBA ID"),
+):
+    """
+    Compare two players’ per-game averages for the *current* season.
+    Returns PTS, REB, AST, FG_PCT, FG3_PCT, FT_PCT, MIN, along with name and team.
+    """
+    season = get_current_season()
+
+    def fetch_season_stats(pid: int, season: str):
+        career = playercareerstats.PlayerCareerStats(player_id=pid)
+        df = career.get_data_frames()[0]
+        row = df[df["SEASON_ID"] == season]
+        if row.empty:
+            return None
+        data = row.iloc[0].to_dict()
+        return {
+            "player_id": pid,
+            "player_name": data["PLAYER_NAME"],
+            "team_abbr": _TEAM_MAP.get(int(data["TEAM_ID"]), None),
+            "season": season,
+            "stats": {
+                "PTS": int(data.get("PTS", 0)),
+                "REB": int(data.get("REB", 0)),
+                "AST": int(data.get("AST", 0)),
+                "FG_PCT": None if pd.isna(data.get("FG_PCT")) else float(data.get("FG_PCT")),
+                "FG3_PCT": None if pd.isna(data.get("FG3_PCT")) else float(data.get("FG3_PCT")),
+                "FT_PCT": None if pd.isna(data.get("FT_PCT")) else float(data.get("FT_PCT")),
+                "MIN": data.get("MIN"),
+            },
+        }
+
+    p1_data = fetch_season_stats(player1, season)
+    if p1_data is None:
+        raise HTTPException(status_code=404, detail=f"No stats for player {player1} in {season}")
+    p2_data = fetch_season_stats(player2, season)
+    if p2_data is None:
+        raise HTTPException(status_code=404, detail=f"No stats for player {player2} in {season}")
+
+    return {"season": season, "player1": p1_data, "player2": p2_data}
+
+
+@app.get("/leaders")
+def league_leaders(
+    stat: str = Query(..., description="Stat category (e.g., PTS, REB, AST, BLK, STL, FG3M, etc.)"),
+    limit: int = Query(5, description="Number of top players to return"),
+):
+    """
+    Returns the top `limit` players for the current season’s Regular Season, 
+    ranked by the given stat category (per game).
+    """
+    season = get_current_season()
+    season_type = "Regular Season"
+
+    try:
+        ll = leagueleaders.LeagueLeaders(
+            season=season,
+            season_type_all_star=season_type,
+            stat_category=stat,
+            per_mode_detailed="PerGame",
+            league_id="00",
+        )
+        df = ll.get_data_frames()[0]
+        if df.empty:
+            raise HTTPException(status_code=404, detail=f"No leader data for {stat} in {season}.")
+
+        top_df = df.head(limit)
+        result = []
+        for _, row in top_df.iterrows():
+            result.append({
+                "player_id": int(row["PLAYER_ID"]),
+                "player_name": row["PLAYER_NAME"],
+                "team_abbr": row["TEAM_ABBREVIATION"],
+                "value": row.get(stat),
+            })
+        return {"season": season, "stat_category": stat, "leaders": result}
 
     except HTTPException:
         raise
