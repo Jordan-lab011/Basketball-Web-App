@@ -38,6 +38,24 @@ app.get("/", async(req, res) => {
     });
 });
 
+app.get("/matches-today", async(req, res) => { 
+  const response = await axios.get(`${NBA_API_URL}/matches-of-the-day`); 
+  const data = (response.data); 
+  const games = data.games
+  const matchups = []
+  console.log(games);
+  if (games[0].matchup){
+    games.forEach(game => {
+      matchups.push(game.matchup)
+    });
+    console.log(matchups)
+    res.render("matches.ejs", {
+       matches: matchups
+    });
+  } else {
+    res.render("matches.ejs")
+  }
+});
 
 
 app.listen(port, () => {

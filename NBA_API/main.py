@@ -14,6 +14,8 @@ from nba_api.stats.endpoints import (
     playercareerstats,
     leagueleaders,
 )
+from fastapi.encoders import jsonable_encoder
+import json
 
 app = FastAPI()
 
@@ -30,7 +32,7 @@ def get_current_season():
 
 
 @app.get("/player-of-the-day")
-def player_of_the_day(days_ago: int = 3):
+def player_of_the_day(days_ago: int = 2):#!!CHANGE int= BACK TO 1 AFTER TESTING
     """
     Returns the “best” player of a given day (default = yesterday),
     across Regular Season, Playoffs, and In-Season Tournament games.
@@ -127,104 +129,136 @@ def player_of_the_day(days_ago: int = 3):
 
 
 @app.get("/matches-of-the-day")
-def matches_of_the_day():
-    """
-    Returns all games scheduled for today (using scoreboardv2).
-    For each matched dictionary:
-      - 'matchup': e.g. "OKC vs. IND"
-      - 'time': if NotStarted: tipoff time (e.g. "7:00 PM ET"); if InProgress: status; if Final: "Final"
-      - If status == Final: include
-          * 'final_score': "OKC 110–IND 105"
-          * 'boxscores': list of player stats (one dict per player)
-      - Otherwise: do NOT include 'final_score' or 'boxscores'
-    """
-    date_str = datetime.now().strftime("%m/%d/%Y")
-
+def matches_of_the_day(days_ago: int = 4):
+    target_dt = (datetime.now() - timedelta(days=days_ago)).date()
+    date_str = target_dt.strftime("%m/%d/%Y")
+    # Fetch scoreboard for the given date and NBA league
     try:
-        scoreboard = scoreboardv2.ScoreboardV2(game_date=date_str)
-        gh = scoreboard.game_header.get_data_frame()
-        ls = scoreboard.line_score.get_data_frame()
+        scoreboard = scoreboardv2.ScoreboardV2(game_date=date_str, league_id='00')
+        data = scoreboard.get_dict()
+        
+        # Map team ID to abbreviation for team names
+        team_list = nba_teams.get_teams()
+        team_map = {team['id']: team['abbreviation'] for team in team_list}
+        
+        games = []
+        # Find the GameHeader result set in the scoreboard data
+        game_header = None
+        for rs in data['resultSets']:
+            if rs.get('name') == 'GameHeader':
+                game_header = rs
+                break
+        if not game_header:
+            print(json.dumps({"games": []}))
+            return json.dumps({"games":[]})
 
-        if gh.empty:
-            return {"message": f"No NBA games scheduled for today ({date_str})."}
+        headers = game_header['headers']
+        rows = game_header['rowSet']
+        # Column indices for fields
+        idx_game_id = headers.index('GAME_ID')
+        idx_status_id = headers.index('GAME_STATUS_ID')
+        idx_status_text = headers.index('GAME_STATUS_TEXT')
+        idx_home_id = headers.index('HOME_TEAM_ID')
+        idx_away_id = headers.index('VISITOR_TEAM_ID')
+        idx_live_period = headers.index('LIVE_PERIOD')
+        idx_live_pct = headers.index('LIVE_PC_TIME')
 
-        response = []
-        for idx, row in gh.iterrows():
-            game_id = row["GAME_ID"]
-            visitor_id = int(row["VISITOR_TEAM_ID"])
-            home_id = int(row["HOME_TEAM_ID"])
-            visitor_abbr = _TEAM_MAP.get(visitor_id, "N/A")
-            home_abbr = _TEAM_MAP.get(home_id, "N/A")
-            status_text = row["GAME_STATUS_TEXT"]  # e.g. "Final", "7:00 PM ET", or "In Progress"
-            status_id = int(row["GAME_STATUS_ID"])  # 1=Scheduled, 2=InProgress, 3=Final
-
-            matchup = f"{visitor_abbr} vs. {home_abbr}"
-            game_dict = {
-                "matchup": matchup,
-                "time": status_text
-            }
-
-            if status_id == 3:  # Final → include scores & boxscores
-                # 1) Final score from line score
-                ls_rows = ls[ls["GAME_ID"] == game_id]
-                if ls_rows.shape[0] == 2:
-                    r1, r2 = ls_rows.iloc[0], ls_rows.iloc[1]
-                    tid1, pts1 = int(r1["TEAM_ID"]), int(r1["PTS"])
-                    tid2, pts2 = int(r2["TEAM_ID"]), int(r2["PTS"])
-                    abbr1 = _TEAM_MAP.get(tid1, "N/A")
-                    abbr2 = _TEAM_MAP.get(tid2, "N/A")
-                    final_score = f"{abbr1} {pts1}–{abbr2} {pts2}"
+        for row in rows:
+            game_id = row[idx_game_id]
+            status_id = int(row[idx_status_id])
+            status_text = row[idx_status_text] or ""
+            home_id = row[idx_home_id]
+            away_id = row[idx_away_id]
+            home_abbr = team_map.get(home_id, str(home_id))
+            away_abbr = team_map.get(away_id, str(away_id))
+            matchup = f"{away_abbr} vs {home_abbr}"
+            
+            # Determine time text: scheduled (if not started) or live/final status
+            if status_id == 1:
+                time_text = status_text  # e.g. "7:30 PM ET" or similar
+            elif status_id == 3:
+                time_text = status_text if status_text else "Final"
+            else:
+                live_period = row[idx_live_period]
+                live_time = row[idx_live_pct]
+                # If live period/time available, format as e.g. "Q3 05:32"
+                if live_period and live_time:
+                    time_text = f"Q{live_period} {live_time}"
                 else:
-                    final_score = "Unavailable"
+                    time_text = status_text
 
-                # 2) Boxscore: all player stats
-                time.sleep(0.5)
+            game_info = {"matchup": matchup, "time": time_text}
+            # If game is in progress or finished, fetch boxscore for player stats
+            if status_id != 1:  # started
                 box = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game_id)
-                player_stats_df = box.player_stats.get_data_frame()
-                # Convert to list of dicts
-                boxscores = player_stats_df.where(pd.notnull(player_stats_df), None).to_dict(orient="records")
+                box_data = box.get_dict()
+                # Extract the PlayerStats result set
+                player_stats = []
+                for rs in box_data.get('resultSets', []):
+                    if rs.get('name') == 'PlayerStats':
+                        headers_ps = rs['headers']
+                        idx_player_name = headers_ps.index('PLAYER_NAME')
+                        idx_team_abbr = headers_ps.index('TEAM_ABBREVIATION')
+                        idx_pts = headers_ps.index('PTS')
+                        idx_ast = headers_ps.index('AST')
+                        idx_reb = headers_ps.index('REB')
+                        idx_stl = headers_ps.index('STL')
+                        idx_blk = headers_ps.index('BLK')
+                        idx_fg3m = headers_ps.index('FG3M')
+                        idx_fg_pct = headers_ps.index('FG_PCT')
+                        idx_plus = headers_ps.index('PLUS_MINUS')
+                        for prow in rs['rowSet']:
+                            player = {}
+                            player_name = prow[idx_player_name]
+                            if player_name:
+                                player['player_name'] = player_name
+                            team_abbr = prow[idx_team_abbr]
+                            if team_abbr:
+                                player['team'] = team_abbr
+                            # Add stats if available
+                            # Convert numeric strings to int/float
+                            def safe_num(val):
+                                try:
+                                    return int(val) if val != '' else None
+                                except:
+                                    try:
+                                        return float(val) if val != '' else None
+                                    except:
+                                        return None
+                            pts = safe_num(prow[idx_pts])
+                            if pts is not None: player['pts'] = pts
+                            ast = safe_num(prow[idx_ast])
+                            if ast is not None: player['ast'] = ast
+                            reb = safe_num(prow[idx_reb])
+                            if reb is not None: player['reb'] = reb
+                            stl = safe_num(prow[idx_stl])
+                            if stl is not None: player['stl'] = stl
+                            blk = safe_num(prow[idx_blk])
+                            if blk is not None: player['blk'] = blk
+                            fg3m = safe_num(prow[idx_fg3m])
+                            if fg3m is not None: player['fg3m'] = fg3m
+                            fg_pct = prow[idx_fg_pct]
+                            if fg_pct not in (None, '', 'None'): 
+                                try:
+                                    player['fg_pct'] = float(fg_pct)
+                                except:
+                                    pass
+                            plus = safe_num(prow[idx_plus])
+                            if plus is not None: player['plus_minus'] = plus
+                            # Only include players with a name (skip empty rows)
+                            if player:
+                                player_stats.append(player)
+                        break  # done with PlayerStats
 
-                game_dict["final_score"] = final_score
-                game_dict["boxscores"] = boxscores
+                # Only include player list if non-empty
+                if player_stats:
+                    game_info['players'] = player_stats
 
-            # If status_id == 1 or 2, do NOT include final_score or boxscores
-            response.append(game_dict)
-
-        return {"date": date_str, "games": response}
-
+            games.append(game_info)
+        print(json.dumps({"games": games}, indent=2))
+        return {"games": games}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"NBA API error: {str(exc)}")
-
-
-@app.get("/player-stats/{player_id}")
-def player_stats(player_id: int):
-    """
-    Returns the current season stats for the requested player_id.
-    Uses PlayerCareerStats to fetch per‐season splits and filters for the 2024-25 season.
-    If no row for 2024-25 is found, returns a 404.
-    """
-    try:
-        career = playercareerstats.PlayerCareerStats(player_id=player_id)
-        df = career.get_data_frames()[0]  # DataFrame per season
-
-        # Filter for 2024-25 season
-        current_season = get_current_season()
-        row = df[df["SEASON_ID"] == current_season]
-
-        if row.empty:
-            raise HTTPException(status_code=404, detail=f"No stats found for player {player_id} in season {current_season}.")
-
-        stats = row.iloc[0].to_dict()
-        # Convert NaN to None
-        stats = {k: (None if (isinstance(v, float) and np.isnan(v)) else v) for k, v in stats.items()}
-
-        return {"player_id": player_id, "season": current_season, "stats": stats}
-
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"NBA API error: {str(exc)}")
-
 
 @app.get("/compare-players")
 def compare_players(
