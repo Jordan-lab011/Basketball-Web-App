@@ -22,6 +22,39 @@ app = FastAPI()
 # Build a mapping from team_id → team_abbreviation
 _TEAM_MAP = {team["id"]: team["abbreviation"] for team in nba_teams.get_teams()}
 
+
+@app.get("/search-player")
+def search_player(name: str = Query(..., description="Full or partial player name")):
+    """
+    Search for players whose names contain the given string (case‐insensitive).
+    Returns a list of matching players with:
+      - id
+      - full_name
+      - current_team (abbreviation, or None if unavailable)
+    """
+    print("I enetered")
+    matches = nba_players_static.find_players_by_full_name(name)
+    if not matches:
+        raise HTTPException(status_code=404, detail="No players found matching that name.")
+
+    result = []
+    for p in matches:
+        pid = p["id"]
+        full_name = p["full_name"]
+
+        # Attempt to get current team via CommonPlayerInfo
+        try:
+            info = commonplayerinfo.CommonPlayerInfo(player_id=pid).get_data_frames()[0]
+            current_team_id = info.loc[0, "TEAM_ID"]
+            team_abbr = _TEAM_MAP.get(int(current_team_id), None)
+        except Exception:
+            team_abbr = None
+
+        result.append({"id": pid, "full_name": full_name, "current_team": team_abbr})
+
+    return result
+
+
 def get_current_season():
     today = datetime.now()
     if today.month >= 10:  # NBA season starts in October

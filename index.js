@@ -58,6 +58,21 @@ app.get("/matches-today", async(req, res) => {
 });
 
 
+app.get("/player-stats", async(req, res) => { 
+  const response = await axios.get(`http://localhost:8000/search-player?name=James`); 
+  const data = (response.data);
+  if (data[3].current_team){
+    console.log("wrong");
+    
+    res.send("successfull:"+ data[3].current_team)
+  } else {
+    console.log("I am here")
+    res.send("STill successfull I guess")
+  }
+    
+  }
+);
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
