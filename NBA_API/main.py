@@ -2,6 +2,7 @@ from fastapi import (
     FastAPI,
     HTTPException,
     Query,)
+from fastapi.middleware.cors import CORSMiddleware
 from nba_api.stats.static import teams as nba_teams
 from nba_api.stats.endpoints import scoreboardv2, boxscoretraditionalv2, leaguegamelog, playercareerstats
 from datetime import datetime, timedelta
@@ -16,11 +17,39 @@ from nba_api.stats.endpoints import (
 )
 from fastapi.encoders import jsonable_encoder
 import json
+from typing import List
+from pydantic import BaseModel
 
 app = FastAPI()
 
+# 1. List of allowed origins (your front-end URL)
+origins = [
+    "http://localhost:3000",   # React/Vue/whatever dev server
+    "http://127.0.0.1:3000",   # in case you access by IP
+    # add production URLs here once deployed
+]
+
+# 2. Add the middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,            # ← only these OR ["*"] to allow any
+    allow_credentials=True,           # if you need cookies/auth headers
+    allow_methods=["GET", "POST"],    # or ["*"] to allow all HTTP verbs
+    allow_headers=["*"],              # or specify only the headers you need
+)
+
 # Build a mapping from team_id → team_abbreviation
 _TEAM_MAP = {team["id"]: team["abbreviation"] for team in nba_teams.get_teams()}
+
+#get currrent season fucntion
+def get_current_season():
+    today = datetime.now()
+    if today.month >= 10:  # NBA season starts in October
+        start_year = today.year
+    else:
+        start_year = today.year - 1
+    return f"{start_year}-{str(start_year + 1)[-2:]}"
+
 
 
 @app.get("/search-player")
@@ -32,7 +61,7 @@ def search_player(name: str = Query(..., description="Full or partial player nam
       - full_name
       - current_team (abbreviation, or None if unavailable)
     """
-    print("I enetered")
+    print("Loading...")
     matches = nba_players_static.find_players_by_full_name(name)
     if not matches:
         raise HTTPException(status_code=404, detail="No players found matching that name.")
@@ -55,13 +84,36 @@ def search_player(name: str = Query(..., description="Full or partial player nam
     return result
 
 
-def get_current_season():
-    today = datetime.now()
-    if today.month >= 10:  # NBA season starts in October
-        start_year = today.year
-    else:
-        start_year = today.year - 1
-    return f"{start_year}-{str(start_year + 1)[-2:]}"
+@app.get("/player-stats/{player_id}")
+def player_stats(player_id: int):
+    """
+    Returns the current season stats for the requested player_id.
+    Uses PlayerCareerStats to fetch per‐season splits and filters for the 2024-25 season.
+    If no row for 2024-25 is found, returns a 404.
+    """
+    try:
+        print("Loading...")
+        career = playercareerstats.PlayerCareerStats(player_id=player_id)
+        df = career.get_data_frames()[0]  # DataFrame per season
+
+        # Filter for 2024-25 season
+        current_season = get_current_season()
+        row = df[df["SEASON_ID"] == current_season]
+
+        if row.empty:
+            raise HTTPException(status_code=404, detail=f"No stats found for player {player_id} in season {current_season}.")
+
+        stats = row.iloc[0].to_dict()
+        # Convert NaN to None
+        stats = {k: (None if (isinstance(v, float) and np.isnan(v)) else v) for k, v in stats.items()}
+
+        return {"player_id": player_id, "season": current_season, "stats": stats}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"NBA API error: {str(exc)}")
+
 
 
 @app.get("/player-of-the-day")
@@ -80,6 +132,7 @@ def player_of_the_day(days_ago: int = 2):#!!CHANGE int= BACK TO 1 AFTER TESTING
     date_str = target_dt.strftime("%m/%d/%Y")
 
     try:
+        print("Loading...")
         # 2) Fetch all games for that day via scoreboardv2
         scoreboard = scoreboardv2.ScoreboardV2(game_date=date_str)
         game_header_df = scoreboard.game_header.get_data_frame()
@@ -167,6 +220,7 @@ def matches_of_the_day(days_ago: int = 4):
     date_str = target_dt.strftime("%m/%d/%Y")
     # Fetch scoreboard for the given date and NBA league
     try:
+        print("Loading...")
         scoreboard = scoreboardv2.ScoreboardV2(game_date=date_str, league_id='00')
         data = scoreboard.get_dict()
         
@@ -304,6 +358,7 @@ def compare_players(
     """
     season = get_current_season()
 
+    print("Loading...")
     def fetch_season_stats(pid: int, season: str):
         career = playercareerstats.PlayerCareerStats(player_id=pid)
         df = career.get_data_frames()[0]
@@ -350,6 +405,7 @@ def league_leaders(
     season_type = "Regular Season"
 
     try:
+        print("Loading...")
         ll = leagueleaders.LeagueLeaders(
             season=season,
             season_type_all_star=season_type,
@@ -376,3 +432,37 @@ def league_leaders(
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"NBA API error: {str(exc)}")
+
+
+
+
+
+
+
+
+
+
+# Define the shape of each suggestion
+class PlayerSuggestion(BaseModel):
+    id: int
+    full_name: str
+
+@app.get("/autocomplete", response_model=List[PlayerSuggestion])
+def autocomplete_players(
+    prefix: str = Query(..., min_length=1, description="Name prefix to search"),
+    limit: int = Query(10, ge=1, le=50, description="Max number of suggestions")
+):
+    # Fetch all players once from your static source
+    all_players = nba_players_static.find_players_by_full_name("")  # or however you load them
+    # Filter for those whose names start with prefix
+    matches = [
+        {"id": p["id"], "full_name": p["full_name"]}
+        for p in all_players
+        if p["full_name"].lower().startswith(prefix.lower())
+    ]
+    if not matches:
+        # return empty list instead of 404 so UI can handle “no suggestions”
+        return []
+    # Sort by name and clamp to limit
+    matches_sorted = sorted(matches, key=lambda x: x["full_name"])[:limit]
+    return matches_sorted

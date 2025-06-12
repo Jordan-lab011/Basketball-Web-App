@@ -16,26 +16,36 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"))
 
 app.get("/", async(req, res) => { 
-      const response = await axios.get(`${NBA_API_URL}/player-of-the-day`); 
-      const data = (response.data); 
-      const player = data.player_of_the_day.Player;
-      console.log(data);
+  const response = await axios.get(`${NBA_API_URL}/player-of-the-day`); 
+  const data = (response.data); 
+  const player = data.player_of_the_day.Player;
+  console.log(data);
 
-      // Fetching player image using Google Custom Search API
-      const searchResponse = await axios.get(`https://www.googleapis.com/customsearch/v1?key=AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw&cx=97288c4fc65664c6f&q=${player}&num=1&dateRestrict=d[1]&imgSize=xlarge&searchType=image`);
-      const searchData = searchResponse.data;
-      const playerImage = searchData.items[0].link;
-      console.log(playerImage);
-      res.render("index.ejs", {
-        date: data.date,
-        playerOfTheDay: data.player_of_the_day,
-        team: data.Team,
-        pts: data.Points,
-        rebs: data.Rebounds,
-        asts: data.Assists,
-        opp: data.Opponent,
-        imageSrc: playerImage,
-    });
+  // Fetching player image using Google Custom Search API
+  const searchResponse = await axios.get("https://www.googleapis.com/customsearch/v1", {
+    params: {
+      key: "AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw",
+      cx: "97288c4fc65664c6f",
+      q: player,
+      num: 1,
+      dateRestrict: "d[1]",
+      imgSize: "xlarge",
+      searchType: "image"
+    }
+  });      
+  const searchData = searchResponse.data;
+  const playerImage = searchData.items[0].link;
+  console.log(playerImage);
+  res.render("index.ejs", {
+    date: data.date,
+    playerOfTheDay: data.player_of_the_day,
+    team: data.Team,
+    pts: data.Points,
+    rebs: data.Rebounds,
+    asts: data.Assists,
+    opp: data.Opponent,
+    imageSrc: playerImage,
+  });
 });
 
 app.get("/matches-today", async(req, res) => { 
@@ -58,20 +68,46 @@ app.get("/matches-today", async(req, res) => {
 });
 
 
-app.get("/player-stats", async(req, res) => { 
-  const response = await axios.get(`http://localhost:8000/search-player?name=James`); 
-  const data = (response.data);
-  if (data[3].current_team){
-    console.log("wrong");
-    
-    res.send("successfull:"+ data[3].current_team)
-  } else {
-    console.log("I am here")
-    res.send("STill successfull I guess")
-  }
-    
-  }
+app.get("/player-stats", async(req, res) => {
+  res.render("player-stats.ejs", {action:"/player-stats"});
+}
 );
+
+app.post("/player-stats", async(req, res) => {
+  const playerName = req.body.playerName;
+  console.log(playerName);
+
+  const response = await axios.get(`${NBA_API_URL}/search-player`, {
+    params: { name: playerName }
+  });
+   const data = response.data;
+  console.log(data);
+  const player_id = data[0].id
+
+const playerStats = await axios.get(`${NBA_API_URL}/player-stats/${player_id}`);
+
+  const playerImage = await axios.get("https://www.googleapis.com/customsearch/v1", {
+    params: {
+      key: google_api_key,
+      cx: cx,
+      q: playerName,
+      num: 1,
+      dateRestrict: "d[1]",
+      imgSize: "xlarge",
+      searchType: "image"
+    }
+  });      
+  const imageData = playerImage.data;
+  const imageLink = imageData.items[0].link;
+
+ res.render("player-stats.ejs", {
+  action:"/player-stats",
+  imgSrc: imageLink,
+  stats: playerStats,
+  playerName: playerName
+});
+  
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

@@ -5,3 +5,33 @@
     margin-top: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Search bar css */
+ #suggestions {
+      border: 1px solid #ccc;
+      max-width: 300px;
+      position: absolute;
+      background: white;
+      z-index: 100;
+    }
+  #suggestions div {
+    padding: 8px;
+    cursor: pointer;
+  }
+  #suggestions div:hover {
+    background: #f0f0f0;
+  }
+  #player-search{
+    width: 300px;
+    padding: 8px;
+    font-size: 16px;
+  }
+  #search-button{
+    padding: 8px 12px;
+    font-size: 16px;
+    background-color: #C9082A;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
