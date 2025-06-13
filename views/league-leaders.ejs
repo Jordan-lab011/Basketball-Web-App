@@ -5,7 +5,7 @@
   <form method="POST" action="/league-leaders">
     <select id="stat" name="stat" required>
        <option value="" disabled selected>Select stat</option>
-      <% Object.entries(statsOptions).forEach(([label, value]) => { %>
+      <% Object.entries(statsOptions).forEach(([value, label]) => { %>
         <option value="<%= value %>"><%= label %></option>
       <% }); %>
     </select>
@@ -16,6 +16,32 @@
     </select>
     <button type="submit" id="search-button">Go</button>
   </form>
+
+  <% if (locals.leaders) {%>
+    <div class="leaderboard">
+        <h2>Top <%= selectedLimit %> Players in <%= selectedStat %></h2>
+        <table>
+        <thead>
+            <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Team</th>
+            <th><%= categoryAbbr%></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% leaders.forEach((leader, index) => { %>
+            <tr>
+                <td><%= index + 1 %></td>
+                <td><a href="/player/<%= leaders.playerId %>"><%= leader.player_name %></a></td>
+                <td><%= leader.team_abbr %></td>
+                <td><%= leader.value %></td>
+            </tr>
+            <% }); %>
+        </tbody>
+        </table>
+    </div>
+    <% } %>
 </section>
 
 

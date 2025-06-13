@@ -10,15 +10,15 @@ const google_api_key = "AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw"
 const cx = "97288c4fc65664c6f"
 // Available stat categories for /leaders endpoint
 const statsOptions = {
-  "Points per game": "PTS",
-  "Rebounds per game": "REB",
-  "Assists per game": "AST",
-  "Steals per game": "STL",
-  "Blocks per game": "BLK",
-  "3-Pointers per game": "FG3M",
-  "3-Pointers % ": "FG3_PCT",
-  "Field goals per game": "FGM",
-  "Field Goal % ": "FG_PCT",
+  "PTS":"Points per game" ,
+  "REB":"Rebounds per game" ,
+  "AST":"Assists per game" ,
+  "STL":"Steals per game" ,
+  "BLK":"Blocks per game" ,
+  "FG3M":"3-Pointers per game" ,
+  "FG3_PCT":"3-Pointers % " ,
+  "FGM":"Field goals per game" ,
+  "FG_PCT":"Field Goal % " ,
 };
 
 // Possible limits
@@ -135,7 +135,7 @@ app.post("/league-leaders", async(req, res) => {
   const limit = parseInt(req.body.limit);
   console.log(statCategory, limit);
 
-  if (!Object.values(statsOptions).includes(statCategory)) {
+  if (!Object.keys(statsOptions).includes(statCategory)) {
     return res.status(400).send("Invalid stat category");
   }
 
@@ -157,10 +157,45 @@ app.post("/league-leaders", async(req, res) => {
     statsOptions,
     limits,
     leaders: data.leaders,
-    selectedStat: statCategory,
+    categoryAbbr: data.stat_category,
+    selectedStat: statsOptions[statCategory],
     selectedLimit: limit
   });
 })
+
+
+app.get("/player-comparison", async(req, res) => {
+  res.render("player-comparison.ejs", {action:"/player-comparison"});
+});
+app.post("/player-comparison", async(req, res) => {
+  const player1Name = req.body.player1Name;
+  const player2Name = req.body.player2Name;
+
+  console.log(player1Name, player2Name);
+
+  const response1 = await axios.get(`${NBA_API_URL}/search-player`, {
+    params: { name: player1Name }
+  });
+  const data1 = response1.data;
+  const player1_id = data1[0].id;
+
+  const response2 = await axios.get(`${NBA_API_URL}/search-player`, {
+    params: { name: player2Name }
+  });
+  const data2 = response2.data;
+  const player2_id = data2[0].id;
+
+  const playerStats1 = await axios.get(`${NBA_API_URL}/player-stats/${player1_id}`);
+  const playerStats2 = await axios.get(`${NBA_API_URL}/player-stats/${player2_id}`);
+
+  res.render("player-comparison.ejs", {
+    action: "/player-comparison",
+    player1: data1[0],
+    player2: data2[0],
+    stats1: playerStats1.data,
+    stats2: playerStats2.data
+  });
+});
 
 
 app.listen(port, () => {
