@@ -2,24 +2,40 @@ import express from "express";
 import axios from "axios";
 import bodyParser from "body-parser";
 
-//<script async src="https://cse.google.com/cse.js?cx=97288c4fc65664c6f">
-//</script>
-//<div class="gcse-search"></div>
-//https://www.googleapis.com/customsearch/v1?key=AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw&cx=97288c4fc65664c6f&q=Kyrie%20Irving&num=1&dateRestrict=d[1]&imgSize=xlarge
+
 const app = express();
 const port = 3000;
-const NBA_API_URL = "http://127.0.0.1:8000"
+const NBA_API_URL = "http://localhost:8000"
 const google_api_key = "AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw"
 const cx = "97288c4fc65664c6f"
- 
+// Available stat categories for /leaders endpoint
+const statsOptions = {
+  "Points per game": "PTS",
+  "Rebounds per game": "REB",
+  "Assists per game": "AST",
+  "Steals per game": "STL",
+  "Blocks per game": "BLK",
+  "3-Pointers per game": "FG3M",
+  "3-Pointers % ": "FG3_PCT",
+  "Field goals per game": "FGM",
+  "Field Goal % ": "FG_PCT",
+};
+
+// Possible limits
+const limits = [5, 10, 20, 50, 100];
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"))
+
+
 
 app.get("/", async(req, res) => { 
   const response = await axios.get(`${NBA_API_URL}/player-of-the-day`); 
   const data = (response.data); 
-  const player = data.player_of_the_day.Player;
   console.log(data);
+  const player = data.player_of_the_day.Player;
+  console.log(player);
 
   // Fetching player image using Google Custom Search API
   const searchResponse = await axios.get("https://www.googleapis.com/customsearch/v1", {
@@ -70,8 +86,7 @@ app.get("/matches-today", async(req, res) => {
 
 app.get("/player-stats", async(req, res) => {
   res.render("player-stats.ejs", {action:"/player-stats"});
-}
-);
+});
 
 app.post("/player-stats", async(req, res) => {
   const playerName = req.body.playerName;
@@ -108,6 +123,45 @@ const playerStats = await axios.get(`${NBA_API_URL}/player-stats/${player_id}`);
 });
   
 });
+
+
+app.get("/league-leaders", async(req, res) => {
+  res.render("league-leaders.ejs",{statsOptions, limits});
+});
+
+
+app.post("/league-leaders", async(req, res) => {
+  const statCategory = req.body.stat;
+  const limit = parseInt(req.body.limit);
+  console.log(statCategory, limit);
+
+  if (!Object.values(statsOptions).includes(statCategory)) {
+    return res.status(400).send("Invalid stat category");
+  }
+
+  if (!limits.includes(limit)) {
+    return res.status(400).send("Invalid limit");
+  }
+
+  const response = await axios.get(`${NBA_API_URL}/leaders`, {
+    params: {
+      stat: statCategory,
+      limit: limit
+    }
+  });
+
+  const data = response.data;
+  console.log(data);
+
+  res.render("league-leaders.ejs", {
+    statsOptions,
+    limits,
+    leaders: data.leaders,
+    selectedStat: statCategory,
+    selectedLimit: limit
+  });
+})
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

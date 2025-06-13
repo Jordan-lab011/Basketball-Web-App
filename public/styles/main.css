@@ -35,3 +35,22 @@
     cursor: pointer;
     border-radius: 4px;
   }
+
+
+/* CSS for the league leaders section */
+  select {
+      width: fit-content;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      background: #fafafa;
+    }
+    select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+     button:hover {
+      background-color: #0056b3;
+    }

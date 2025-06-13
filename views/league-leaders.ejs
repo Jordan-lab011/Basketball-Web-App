@@ -1,0 +1,22 @@
+<%- include("partials/navbar.ejs") %>
+
+<section class="main">
+ <h1>LEAGUE LEADERS</h1>
+  <form method="POST" action="/league-leaders">
+    <select id="stat" name="stat" required>
+       <option value="" disabled selected>Select stat</option>
+      <% Object.entries(statsOptions).forEach(([label, value]) => { %>
+        <option value="<%= value %>"><%= label %></option>
+      <% }); %>
+    </select>
+    <select id="limit" name="limit" required>
+      <% limits.forEach(num => { %>
+        <option  value="<%= num %>">Top <%= num %></option>
+      <% }); %>
+    </select>
+    <button type="submit" id="search-button">Go</button>
+  </form>
+</section>
+
+
+<%- include("partials/footer.ejs") %>

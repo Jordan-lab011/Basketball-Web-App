@@ -1,0 +1,16 @@
+<%- include("partials/navbar.ejs") %>
+
+<section class="main">
+<% if (locals.matches){ %>
+    <h1>MATCHES TODAY</h1>
+    <% matches.forEach(match => {%>
+        <li>
+            <strong><%=match%></strong>
+        </li>
+    <% }); %>
+<% } else{ %>
+    <h1>NO MATCHES TODAY</h1>
+<%} %>
+</section>
+
+<%- include("partials/footer.ejs") %>

@@ -1,0 +1,12 @@
+<%- include("partials/navbar.ejs") %>
+
+<section class="main">
+  <h1>PLAYER STATS</h1>
+<%- include("partials/searchBar.ejs") %>
+  <% if (locals.imgSrc){ %>
+    <h2><%= playerName %></h2>
+    <img class="player-of-the-day-image" src="<%= imgSrc %>" alt="<%= playerName %>" />
+  <% } %>
+</section>
+
+<%- include("partials/footer.ejs") %>

@@ -27,6 +27,7 @@ origins = [
     "http://localhost:3000",   # React/Vue/whatever dev server
     "http://127.0.0.1:3000",   # in case you access by IP
     # add production URLs here once deployed
+    "http://127.0.0.1:51711"
 ]
 
 # 2. Add the middleware
@@ -61,7 +62,7 @@ def search_player(name: str = Query(..., description="Full or partial player nam
       - full_name
       - current_team (abbreviation, or None if unavailable)
     """
-    print("Loading...")
+    print("Retriving player datails...")
     matches = nba_players_static.find_players_by_full_name(name)
     if not matches:
         raise HTTPException(status_code=404, detail="No players found matching that name.")
@@ -92,7 +93,7 @@ def player_stats(player_id: int):
     If no row for 2024-25 is found, returns a 404.
     """
     try:
-        print("Loading...")
+        print("Retreiving player stats...")
         career = playercareerstats.PlayerCareerStats(player_id=player_id)
         df = career.get_data_frames()[0]  # DataFrame per season
 
@@ -117,7 +118,7 @@ def player_stats(player_id: int):
 
 
 @app.get("/player-of-the-day")
-def player_of_the_day(days_ago: int = 2):#!!CHANGE int= BACK TO 1 AFTER TESTING
+def player_of_the_day(days_ago: int = 1):#!!CHANGE int= BACK TO 1 AFTER TESTING
     """
     Returns the “best” player of a given day (default = yesterday),
     across Regular Season, Playoffs, and In-Season Tournament games.
@@ -132,7 +133,7 @@ def player_of_the_day(days_ago: int = 2):#!!CHANGE int= BACK TO 1 AFTER TESTING
     date_str = target_dt.strftime("%m/%d/%Y")
 
     try:
-        print("Loading...")
+        print("Loading player of the day...")
         # 2) Fetch all games for that day via scoreboardv2
         scoreboard = scoreboardv2.ScoreboardV2(game_date=date_str)
         game_header_df = scoreboard.game_header.get_data_frame()
@@ -215,12 +216,12 @@ def player_of_the_day(days_ago: int = 2):#!!CHANGE int= BACK TO 1 AFTER TESTING
 
 
 @app.get("/matches-of-the-day")
-def matches_of_the_day(days_ago: int = 4):
+def matches_of_the_day(days_ago: int = 1):
     target_dt = (datetime.now() - timedelta(days=days_ago)).date()
     date_str = target_dt.strftime("%m/%d/%Y")
     # Fetch scoreboard for the given date and NBA league
     try:
-        print("Loading...")
+        print("Loading taday's matches...")
         scoreboard = scoreboardv2.ScoreboardV2(game_date=date_str, league_id='00')
         data = scoreboard.get_dict()
         
@@ -358,7 +359,7 @@ def compare_players(
     """
     season = get_current_season()
 
-    print("Loading...")
+    print("comparing players...")
     def fetch_season_stats(pid: int, season: str):
         career = playercareerstats.PlayerCareerStats(player_id=pid)
         df = career.get_data_frames()[0]
@@ -405,12 +406,12 @@ def league_leaders(
     season_type = "Regular Season"
 
     try:
-        print("Loading...")
+        print("Loading league leader ladder...")
         ll = leagueleaders.LeagueLeaders(
             season=season,
             season_type_all_star=season_type,
-            stat_category=stat,
-            per_mode_detailed="PerGame",
+            stat_category_abbreviation=stat,
+            per_mode48="Per48",
             league_id="00",
         )
         df = ll.get_data_frames()[0]
@@ -422,10 +423,11 @@ def league_leaders(
         for _, row in top_df.iterrows():
             result.append({
                 "player_id": int(row["PLAYER_ID"]),
-                "player_name": row["PLAYER_NAME"],
-                "team_abbr": row["TEAM_ABBREVIATION"],
+                "player_name": row["PLAYER"],
+                "team_abbr": row["TEAM"],
                 "value": row.get(stat),
             })
+        print(result)
         return {"season": season, "stat_category": stat, "leaders": result}
 
     except HTTPException:
