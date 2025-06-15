@@ -1,9 +1,12 @@
-.player-of-the-day-image{
-    height: 60vh;
-    border-radius: 20px;
-    margin-top: 20px;
-    margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* General */
+h1{
+  font-size: 60px;
+}
+.player-name{
+  font-family: 'League Spartan', sans-serif;       /*Anton or Orbitron,  */
+  font-size: 30px;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
 }
 
 /* Search bar css */
@@ -21,7 +24,7 @@
   #suggestions div:hover {
     background: #f0f0f0;
   }
-  #player-search{
+  .player-search{
     width: 300px;
     padding: 8px;
     font-size: 16px;
@@ -34,6 +37,38 @@
     border: none;
     cursor: pointer;
     border-radius: 4px;
+  }
+
+  /* updated searchbar css */
+  #search-form {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .suggestions-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    z-index: 999;
+    overflow-y: auto;
+  }
+
+  .suggestions-box div {
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .suggestions-box div:hover {
+    background-color: #f0f0f0;
   }
 
 
@@ -54,3 +89,81 @@
      button:hover {
       background-color: #0056b3;
     }
+
+    /* Player of the day page css */
+    .stats-container{
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: 30px;
+    }
+    .player-image{
+    height: 60vh;
+    border-radius: 20px;
+    margin-top: 20px;
+    margin-top: 20px;
+}
+
+/* Css for /matchups page */
+.W{
+  color: rgb(2, 175, 2);
+  font-weight: bold;
+}
+.L{
+  color: rgb(172, 71, 71);
+  font-weight: bold;
+}
+.dynamic-table{
+  display: flex;
+  flex-direction: row;
+  width: fit-content;
+  gap: 1px;
+  background-color: #dce4e3;
+  border: 1px solid #084236;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.table-column{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: max-content;
+  gap: 1px;
+}
+.table-header{
+  font-weight: bold;
+  font-size: clamp(5px, 12px, 15px);
+  color: #dce4e3;
+  background-color: #084236;
+  padding: 4px;
+  position: sticky
+}
+.cell{
+  padding: 4px;
+  position: sticky;
+  background-color: #084236;
+  color: #dce4e3;
+  flex-grow: 1;
+  height: 30px;
+  font-size: clamp(5px, 12px, 15px);
+}
+.hidden {
+    display: none;
+}
+
+.toggle-boxscore {
+    background-color: #eee;
+    border: none;
+    padding: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.toggle-boxscore:hover {
+    background-color: #ddd;
+}

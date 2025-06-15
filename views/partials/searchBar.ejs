@@ -1,58 +1,74 @@
-<form id="search-form" action=<%= action %> method="post"> 
-    <input id="player-search" name="playerName" type="text" placeholder="Type a player name…" autocomplete="off" required />
-    <button id="search-button" type="submit">GO</button>
+<form id="search-form" action="<%= action %>" method="post"> 
+  <% if (action == "/player-comparison") { %>
+    <% for (const player of ["player1", "player2"]) { %>
+      <div class="input-wrapper">
+        <input class="player-search" name="<%= player %>" type="text" placeholder="Type player's name…" autocomplete="off" required />
+        <div class="suggestions-box"></div>
+      </div>
+    <% } %>
+  <% } else { %>
+    <div class="input-wrapper">
+      <input class="player-search" name="playerName" type="text" placeholder="Type player's name…" autocomplete="off" required />
+      <div class="suggestions-box"></div>
+    </div>
+  <% } %>
+  <button id="search-button" type="submit">GO</button>
 </form>
-  <div id="suggestions"></div>
 
-  <script>
-    console.log("Autocomplete script loaded")
-    window.addEventListener("DOMContentLoaded", () => {
-        console.log("DOM fully loaded and parsed");
-        const BASE_URL = "http://127.0.0.1:8000";
-        const input = document.getElementById("player-search");
-        const suggestionsBox = document.getElementById("suggestions");
-        let debounceTimer;
+<script>
+  console.log("Autocomplete script loaded");
 
-        input.addEventListener("input", () => {
-        clearTimeout(debounceTimer);
+  window.addEventListener("DOMContentLoaded", () => {
+    const BASE_URL = "http://127.0.0.1:8000";
+    const inputs = document.getElementsByClassName("player-search");
+    const debounceTimers = {};
+
+    Array.from(inputs).forEach((input, index) => {
+      // wrap input and suggestions-box are inside .input-wrapper
+      const wrapper = input.closest(".input-wrapper");
+      if (!wrapper) return;  // skip if not wrapped
+      const suggestionsBox = wrapper.querySelector(".suggestions-box");
+
+      input.addEventListener("input", () => {
+        clearTimeout(debounceTimers[index]);
         const query = input.value.trim();
+
         if (!query) {
-            suggestionsBox.innerHTML = "";
-            return;
+          suggestionsBox.innerHTML = "";
+          return;
         }
 
-        debounceTimer = setTimeout(async () => {
-            try {
+        debounceTimers[index] = setTimeout(async () => {
+          try {
             const resp = await fetch(`${BASE_URL}/autocomplete?prefix=${encodeURIComponent(query)}`);
-            console.log(resp);
+            if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
             const list = await resp.json();
-            console.log(list);
-            
-            renderSuggestions(list);
-            } catch (err) {
+            renderSuggestions(list, input, suggestionsBox);
+          } catch (err) {
             console.error("Autocomplete error:", err);
-            }
-        }, 250);  // 250ms debounce
-        });
+          }
+        }, 250);
+      });
 
-        function renderSuggestions(players) {
-        suggestionsBox.innerHTML = "";
-        players.forEach(p => {
-            const div = document.createElement("div");
-            div.textContent = p.full_name;
-            console.log(p.full_name);
-            div.addEventListener("click", () => {
-            input.value = p.full_name;
-            suggestionsBox.innerHTML = "";
-            });
-            suggestionsBox.appendChild(div);
-        });
+      // Hide suggestions when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!wrapper.contains(e.target)) {
+          suggestionsBox.innerHTML = "";
         }
-
-        // Hide suggestions when clicking outside
-        document.addEventListener("click", (e) => {
-        if (e.target !== input) suggestionsBox.innerHTML = "";
-        console.log("Clicked outside input, hiding suggestions");
-        });
+      });
     });
-  </script>
+
+    function renderSuggestions(players, input, suggestionsBox) {
+      suggestionsBox.innerHTML = "";
+      players.forEach(p => {
+        const div = document.createElement("div");
+        div.textContent = p.full_name;
+        div.addEventListener("click", () => {
+          input.value = p.full_name;
+          suggestionsBox.innerHTML = "";
+        });
+        suggestionsBox.appendChild(div);
+      });
+    }
+  });
+</script>

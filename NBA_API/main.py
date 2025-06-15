@@ -62,7 +62,7 @@ def search_player(name: str = Query(..., description="Full or partial player nam
       - full_name
       - current_team (abbreviation, or None if unavailable)
     """
-    print("Retriving player datails...")
+    print(f"Retriving {name}'s datails...")
     matches = nba_players_static.find_players_by_full_name(name)
     if not matches:
         raise HTTPException(status_code=404, detail="No players found matching that name.")
@@ -93,7 +93,7 @@ def player_stats(player_id: int):
     If no row for 2024-25 is found, returns a 404.
     """
     try:
-        print("Retreiving player stats...")
+        print(f"Retreiving player {player_id} stats...")
         career = playercareerstats.PlayerCareerStats(player_id=player_id)
         df = career.get_data_frames()[0]  # DataFrame per season
 
@@ -118,7 +118,7 @@ def player_stats(player_id: int):
 
 
 @app.get("/player-of-the-day")
-def player_of_the_day(days_ago: int = 1):#!!CHANGE int= BACK TO 1 AFTER TESTING
+def player_of_the_day(days_ago: int = 3):#!!CHANGE int= BACK TO 1 AFTER TESTING
     """
     Returns the “best” player of a given day (default = yesterday),
     across Regular Season, Playoffs, and In-Season Tournament games.
@@ -216,7 +216,7 @@ def player_of_the_day(days_ago: int = 1):#!!CHANGE int= BACK TO 1 AFTER TESTING
 
 
 @app.get("/matches-of-the-day")
-def matches_of_the_day(days_ago: int = 1):
+def matches_of_the_day(days_ago: int = 4):
     target_dt = (datetime.now() - timedelta(days=days_ago)).date()
     date_str = target_dt.strftime("%m/%d/%Y")
     # Fetch scoreboard for the given date and NBA league
@@ -293,6 +293,10 @@ def matches_of_the_day(days_ago: int = 1):
                         idx_stl = headers_ps.index('STL')
                         idx_blk = headers_ps.index('BLK')
                         idx_fg3m = headers_ps.index('FG3M')
+                        idx_fg3a = headers_ps.index('FG3A')
+                        idx_fgm = headers_ps.index('FGM')
+                        idx_fga = headers_ps.index('FGA')
+                        idx_min = headers_ps.index('MIN')
                         idx_fg_pct = headers_ps.index('FG_PCT')
                         idx_plus = headers_ps.index('PLUS_MINUS')
                         for prow in rs['rowSet']:
@@ -325,6 +329,14 @@ def matches_of_the_day(days_ago: int = 1):
                             if blk is not None: player['blk'] = blk
                             fg3m = safe_num(prow[idx_fg3m])
                             if fg3m is not None: player['fg3m'] = fg3m
+                            fg3a = safe_num(prow[idx_fg3a])
+                            if fg3a is not None: player['fg3a'] = fg3a
+                            fgm = safe_num(prow[idx_fgm])
+                            if fgm is not None: player['fgm'] = fgm
+                            fga = safe_num(prow[idx_fga])
+                            if fga is not None: player['fga'] = fga
+                            min = safe_num(prow[idx_min])
+                            if min is not None: player['min'] = min
                             fg_pct = prow[idx_fg_pct]
                             if fg_pct not in (None, '', 'None'): 
                                 try:
@@ -359,7 +371,7 @@ def compare_players(
     """
     season = get_current_season()
 
-    print("comparing players...")
+    print(f"comparing players({player1} vs {player2}) ...")
     def fetch_season_stats(pid: int, season: str):
         career = playercareerstats.PlayerCareerStats(player_id=pid)
         df = career.get_data_frames()[0]
@@ -406,12 +418,12 @@ def league_leaders(
     season_type = "Regular Season"
 
     try:
-        print("Loading league leader ladder...")
+        print(f"Loading Top {limit} players in {stat} ...")
         ll = leagueleaders.LeagueLeaders(
             season=season,
             season_type_all_star=season_type,
             stat_category_abbreviation=stat,
-            per_mode48="Per48",
+            per_mode48="PerGame",
             league_id="00",
         )
         df = ll.get_data_frames()[0]

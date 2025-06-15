@@ -187,3 +187,12 @@ const closeMenu = () => {
 
   main.style.width = "calc(100% - 78px)";
 };
+
+// Code for toggliing the boxscore
+document.querySelectorAll(".toggle-boxscore").forEach(button => {
+        button.addEventListener("click", () => {
+            const targetId = button.getAttribute("data-target");
+            const content = document.getElementById(targetId);
+            content.classList.toggle("hidden");
+        });
+    });

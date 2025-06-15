@@ -4,8 +4,24 @@
   <h1>PLAYER STATS</h1>
 <%- include("partials/searchBar.ejs") %>
   <% if (locals.imgSrc){ %>
-    <h2><%= playerName %></h2>
-    <img class="player-of-the-day-image" src="<%= imgSrc %>" alt="<%= playerName %>" />
+    <h2><%= `${playerName}(${team})` %></h2>
+    <div class="stats-container">
+      <div>
+        <img class="player-image" src="<%= imgSrc %>" alt="<%= playerName %>" style="background: transparent;" />
+      </div>
+      <div>
+        <p>Points: <%= stats.PTS %></p>
+        <p>Assists: <%= stats.AST %></p>
+        <p>Rebounds: <%= stats.REB %></p>
+        <p>Blocks: <%= stats.BLK %></p>
+        <p>Steals: <%= stats.STL %></p>
+        <p>3-points made: <%= stats.FG3M %></p>
+        <p>3-point percentage: <%= stats.FG3_PCT %></p>
+        <p>Field goals made: <%= stats.FGM %></p>
+        <p>Field goals percentage: <%= stats.FG_PCT %></p>
+      </div>
+    </div>
+
   <% } %>
 </section>
 

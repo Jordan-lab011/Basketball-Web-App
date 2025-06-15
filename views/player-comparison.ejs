@@ -1,7 +1,24 @@
 <%- include("partials/navbar.ejs") %>
-
-
-
-
-
+<section class="main">
+ <h1>PLAYER COMPARISON</h1>
+ <%- include("partials/searchBar") %>
+<% if (locals.player1Stats && locals.player2Stats){ %>
+<h2> <%= player1Stats.name %> VS <%= player2Stats.name %></h2>
+<div class="stats">
+  <div class="player-stats">
+    <h3><%= player1Stats.name %>(<%= player1Stats.team %>)</h3>
+    <p>Points: <%= player1Stats.stats.PTS %></p>
+    <p>Rebounds: <%= player1Stats.stats.REB %></p>
+    <p>Assists: <%= player1Stats.stats.AST %></p>
+    <!-- Add more stats as needed -->
+  </div>
+  <div class="player-stats">
+    <h3><%= player2Stats.name %>(<%= player2Stats.team %>)</h3>
+    <p>Points: <%= player2Stats.stats.PTS %></p>
+    <p>Rebounds: <%= player2Stats.stats.REB %></p>
+    <p>Assists: <%= player2Stats.stats.AST %></p>
+    <!-- Add more stats as needed -->
+  </div>
+<% } %>
+</section>
 <%- include("partials/footer.ejs") %>

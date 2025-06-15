@@ -2,7 +2,24 @@
 
 <section class="main">
   <h1>PLAYER OF THE DAY</h1>
-  <img class="player-of-the-day-image" src="<%= imageSrc %>" alt="Player of the day" />
+  <% if (locals.playerOfTheDay) {%>
+  <div class="stats-container">
+    <div >
+      <h2 class="player-name"><%=playerOfTheDay %> (<%= team %>)</h2>
+      <img class="player-image" src="<%= imageSrc %>" alt="<%= playerOfTheDay %>"  />
+    </div>
+    <div>
+      <p><strong> <%= PTS %></strong> points</p>
+      <p><strong> <%= AST %></strong> assists</p>
+      <p><strong><%= REB %></strong> rebounds </p>
+      <% if ((PTS >= 10) && (AST >= 10) && (REB >= 10)) {%>
+      <p class="triple-double">TRIPPLE-DOUBLE</p>
+        <% } %>
+    </div>
+  </div>
+  <% }else{ %>
+    <h2><%= message %></h2>
+  <%} %>
 </section>
 
 <%- include("partials/footer.ejs") %>
