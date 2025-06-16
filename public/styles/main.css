@@ -103,6 +103,8 @@ h1{
     border-radius: 20px;
     margin-top: 20px;
     margin-top: 20px;
+    filter: drop-shadow(5px 4px 6px rgba(0, 0, 0, 0.9));
+    transition: transform 0.3s ease;
 }
 
 /* Css for /matchups page */

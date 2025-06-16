@@ -118,7 +118,7 @@ def player_stats(player_id: int):
 
 
 @app.get("/player-of-the-day")
-def player_of_the_day(days_ago: int = 3):#!!CHANGE int= BACK TO 1 AFTER TESTING
+def player_of_the_day(days_ago: int = 4):#!!CHANGE int= BACK TO 1 AFTER TESTING
     """
     Returns the “best” player of a given day (default = yesterday),
     across Regular Season, Playoffs, and In-Season Tournament games.
