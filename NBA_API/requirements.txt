@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+nba_api
+pandas
+numpy
+pydantic
