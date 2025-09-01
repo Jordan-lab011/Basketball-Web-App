@@ -8,15 +8,16 @@ dotenv.config();
 
 const app = express();
 const port = 3000;
-const remove_bg_api_key = "kosGSCqVN7xuNSGhc3i4yR15"
 const NBA_API_URL = "http://localhost:8000"
-const google_api_key = "AIzaSyCtM6oJIUAi8dK9HcYm5-AV1KIRAYHh8gw"
-const cx = "97288c4fc65664c6f"
+const google_api_key = process.env.GOOGLE_API_KEY
+const cx = process.env.CX
 const imgSize = "xlarge";
 const playerImageAction =" png"
 const daysAgo = 1; // Restrict to images from the last day
 const dateRestrict = `d[${daysAgo}]`; // Restrict to images from the last day
 const imgColorType = "trans"
+
+console.log(google_api_key, cx)
 
 // Available stat categories for /leaders endpoint
 const statsOptions = {
