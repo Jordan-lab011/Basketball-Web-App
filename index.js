@@ -17,8 +17,6 @@ const daysAgo = 1; // Restrict to images from the last day
 const dateRestrict = `d[${daysAgo}]`; // Restrict to images from the last day
 const imgColorType = "trans"
 
-console.log(google_api_key, cx)
-
 // Available stat categories for /leaders endpoint
 const statsOptions = {
   "PTS":"Points per game" ,
