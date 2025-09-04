@@ -129,7 +129,10 @@ def do_players_comparison(player1: int, player2: int):
 def do_players_autocomplete(prefix: str, limit: int = 10):
     """
     Return players whose names contain the given prefix (case-insensitive).
+    Prioritize first-name matches before others.
     """
+    prefix_lower = prefix.lower()
+
     # Fetch all players
     all_players = nba_players_static.get_players()
 
@@ -137,14 +140,24 @@ def do_players_autocomplete(prefix: str, limit: int = 10):
     matches = [
         {"id": p["id"], "full_name": p["full_name"]}
         for p in all_players
-        if prefix.lower() in p["full_name"].lower()
+        if prefix_lower in p["full_name"].lower()
     ]
 
     if not matches:
         return []  # No suggestions, just empty list
 
-    # Sort alphabetically, clamp to limit
-    return sorted(matches, key=lambda x: x["full_name"])[:limit]
+    def sort_key(player):
+        name_parts = player["full_name"].lower().split()
+        first_name = name_parts[0]
+        # Prioritize first name startswith -> then substring match
+        return (
+            0 if first_name.startswith(prefix_lower) else 1,
+            player["full_name"],
+        )
+
+    # Sort with custom key, clamp to limit
+    return sorted(matches, key=sort_key)[:limit]
+
 
 
 # if __name__ == "__main__":
