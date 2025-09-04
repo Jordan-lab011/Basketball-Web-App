@@ -180,41 +180,43 @@ app.get("/matches-today", async(req, res) => {
 
   if (games[0]){
     games.forEach(game => {
-      if (game.players){
-        if (game.time.toLowerCase().includes("final")){ // Completed matches
-          const matchup = {
-            matchup: game.matchup,
-            status: "Final",
-            statusCode: "red",
-            finalScore: getFinalScore(game),
-            boxscore: game.players
-          };
-          matchups.push(matchup)
-        }else{// Live matches
-          const matchup = {
-            matchup: game.matchup,
-            status: "Live",
-            statusCode: "yellow",
-            finalScore: getFinalScore(game),
-            boxscore: game.players
-          };
-          matchups.push(matchup)
-        }
-      } else {// Matches not started
-        const matchup = {
-            matchup: null,
-            status: game.time,
-            statusCode: "grey",
-            finalScore: null,
-            boxscore: null
-          };
-        matchups.push(matchup)
-      };
+      
+      const [team1Name, team2Name] = ( game.matchup.split(" vs. ").length == 2) ? game.matchup.split(" vs. ") : game.matchup.split(" @ ")
+      
+      const [team1Score, team2Score] = game.final_score.split(" - ")
+      const players = game.players
+
+      const [team1Players, team2Players] = 
+      players.reduce(
+        ([team1Players, team2Players], player) => {
+          if (player.TEAM_ABBREVIATION == team1Name) {
+            team1Players.push(player)
+          } else {
+            team2Players.push(player)
+          }
+          return [team1Players, team2Players]
+        },
+        [[], []]
+      )
+
+      const matchup ={
+        team1Name : team1Name,
+        team1Score : team1Score,
+        team1Players : team1Players,
+        team2Name : team2Name,
+        team2Score : team2Score,
+        team2Players : team2Players
+      }
+
+      matchups.push(matchup)
+
     });
+
     console.log(matchups)
     
     res.render( "matches.ejs", {
-      matches: matchups
+      date : games[0].date,
+        matchups :  matchups
     });
   } else {
     res.render("matches.ejs", {

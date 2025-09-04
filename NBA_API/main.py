@@ -143,3 +143,22 @@ def league_leaders(
             status_code=500,
             detail=f"Failed to retrieve league leaders in {stat}: {str(exc)}"
         )
+
+@app.get("/autocomplete")
+def autocomplete_players(
+    prefix: str = Query(..., min_length=1, description="Name prefix to search"),
+    limit: int = Query(10, ge=1, le=50, description="Max number of suggestions")
+):
+    """
+    Returns the top `limit` players for the current season’s Regular Season, 
+    ranked by the given stat category (per game).
+    """
+    try:
+        print(f"Autocompleting {prefix}...")
+        results = do_players_autocomplete(prefix=prefix, limit=limit)
+        return results
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to autocomplete {prefix}: {str(exc)}"
+        )

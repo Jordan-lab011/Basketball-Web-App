@@ -39,7 +39,7 @@ def get_game_stats(days_back: int): #MAIN FUNCTION
                 players_df = box.get_data_frames()[0]
                 stats_df = players_df[[
                     "PLAYER_NAME", "TEAM_ABBREVIATION", "PTS", "REB", "AST",
-                    "STL", "BLK", "FG3M", "FG3_PCT", "FGM", "FG_PCT", "PLUS_MINUS"
+                    "STL", "BLK", "FGM", "FGA", "FG3M", "FG3A", "FTM", "FTA", "PLUS_MINUS"
                 ]]
                 players = stats_df.to_dict(orient="records")
 
@@ -63,10 +63,10 @@ def get_game_stats(days_back: int): #MAIN FUNCTION
     except Exception as e:
         print(f"Error fetching data for {date_str}: {e}")
 
-    return games_json
+    return clean_nans(games_json)
 
 
-# # Example usage
-# if __name__ == "__main__":#TEST CODE
-#     result = get_game_stats(32)  # Example: 155 days ago
-#     print(json.dumps(result, indent=4))
+# Example usage
+if __name__ == "__main__":#TEST CODE
+    result = get_game_stats(155)  # Example: 155 days ago
+    print(json.dumps(result, indent=4))

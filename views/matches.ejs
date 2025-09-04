@@ -1,139 +1,102 @@
 <%- include("partials/navbar.ejs") %>
 
 <section class="main">
-<% if (locals.matches){ %>
-    <h1>MATCHES TODAY</h1>
-    <% matches.forEach((match, index) => {%>
+<% if (locals.matchups){ %>
+    <h1>MATCHES TODAY <%= date %></h1>
+    <% matchups.forEach((matchup, index) => {%>
     <button class="toggle-boxscore" data-target="boxscore-<%= index %>">
-        <span class=<%= match.finalScore.team1Status %>> <%=match.finalScore.team1%> <%=match.finalScore.team1Score%></span> - <span class=<%= match.finalScore.team2Status %>> <%=match.finalScore.team2Score%> <%=match.finalScore.team2%></span>
+        <span> <%=matchup.team1Name%> <%=matchup.team1Score%></span> - <span> <%=matchup.team2Score%> <%=matchup.team2Name%></span>
     </button> 
-    <div id="boxscore-<%= index %>" class="boxscore-content hidden">
-        <div class = "dynamic-table">
-            <div class="table-column">
-                <div>
-                    <p class="table-header">NAME</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.player_name %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">TEAM</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.team %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">PTS</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.pts %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">AST</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p  class="cell"><%= stats.ast %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">REB</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.reb %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">STL</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.stl %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">BLK</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.blk %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">FGM</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.fgm %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">FGA</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.fga %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">3PM</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.fg3m %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">3PA</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.fg3a %></p>
-                    </div>
-                <% } %>
-            </div>
-            <div class="table-column">
-                <div>
-                    <p class="table-header">+/-</p>
-                </div>
-                <% for (const stats of match.boxscore){ %>
-                    <div>
-                        <p class="cell"><%= stats.plus_minus %></p>
-                    </div>
-                <% } %>
-            </div>
-            
-        </div>
+    <div>
+        <h2><%= matchup.team1Name %></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>PLAYER</th>
+                    <th>TEAM</th>
+                    <th>PTS</th>
+                    <th>REB</th>
+                    <th>AST</th>
+                    <th>STL</th>
+                    <th>BLK</th>
+                    <th>FGM</th>
+                    <th>FGA</th>
+                    <th>FG3M</th>
+                    <th>FG3A</th>
+                    <th>FTM</th>
+                    <th>FTA</th>
+                    <th>+/-</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% matchup.team1Players.forEach(player => { %>
+                    <tr>
+                        <td><%= player.PLAYER_NAME %></td>
+                        <td><%= player.TEAM_ABBREVIATION %></td>
+                        <td><%= player.PTS %></td>
+                        <td><%= player.REB %></td>
+                        <td><%= player.AST %></td>
+                        <td><%= player.STL %></td>
+                        <td><%= player.BLK %></td>
+                        <td><%= player.FGM %></td>
+                        <td><%= player.FGA %></td>
+                        <td><%= player.FG3M %></td>
+                        <td><%= player.FG3A %></td>
+                        <td><%= player.FTM %></td>
+                        <td><%= player.FTA %></td>
+                        <td><%= player.PLUS_MINUS %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+
+        </table>
+    </div>
+    <div>
+        <h2><%= matchup.team2Name %></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>PLAYER</th>
+                    <th>TEAM</th>
+                    <th>PTS</th>
+                    <th>REB</th>
+                    <th>AST</th>
+                    <th>STL</th>
+                    <th>BLK</th>
+                    <th>FGM</th>
+                    <th>FGA</th>
+                    <th>FG3M</th>
+                    <th>FG3A</th>
+                    <th>FTM</th>
+                    <th>FTA</th>
+                    <th>+/-</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% matchup.team2Players.forEach(player => { %>
+                    <tr>
+                        <td><%= player.PLAYER_NAME %></td>
+                        <td><%= player.TEAM_ABBREVIATION %></td>
+                        <td><%= player.PTS %></td>
+                        <td><%= player.REB %></td>
+                        <td><%= player.AST %></td>
+                        <td><%= player.STL %></td>
+                        <td><%= player.BLK %></td>
+                        <td><%= player.FGM %></td>
+                        <td><%= player.FGA %></td>
+                        <td><%= player.FG3M %></td>
+                        <td><%= player.FG3A %></td>
+                        <td><%= player.FTM %></td>
+                        <td><%= player.FTA %></td>
+                        <td><%= player.PLUS_MINUS %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+
+        </table>
+    </div>
     
     <% }); %>
-    </div>
 <% } else{ %>
     <h1>NO MATCHES TODAY</h1>
 <%} %>
